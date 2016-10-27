@@ -1,137 +1,89 @@
-var ping = require('ping');
-var moment = require('moment');
+"use strict";
 
-var Service, Characteristic, HomebridgeAPI;
-
+var ping = require("net-ping"),
+  Service, Characteristic;
 
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
-  HomebridgeAPI = homebridge;
+  homebridge.registerAccessory("homebridge-devices", "Device", Device);
+};
 
-  homebridge.registerAccessory("homebridge-devices", "devices", DeviceAccessory);
-}
+function Device(log, config) {
+  var service = new Service.Switch(config.name),
+    pingInterval = 1000 * (config.pingInterval || 5),
+    isOnline = false,
+    self = this;
 
-
-function DeviceAccessory(log, config) {
-  this.log = log;
-  this.name = config['name'];
-  this.devices = config['devices'];
-  this.threshold = config['threshold'];
-  this.interval = config['interval'];
-  this.services = [];
-  this.storage = require('node-persist');
-  this.stateCache = [];
-
-  //Init storage
-  this.storage.initSync({
-    dir: HomebridgeAPI.user.persistPath()
-  });
-
-  config['devices'].forEach(function(deviceConfig) {
-    var target = this.getTarget(deviceConfig);
-    var service = new Service.AccessoryInformation(deviceConfig.name, deviceConfig.name);
-    service.target = target;
-    service
-      .getCharacteristic(Characteristic.On)
-      .on('get', this.getState.bind(this, target));
-
-    this.services.push(service);
-  }.bind(this));
-
-  this.populateStateCache();
-
-  //Start pinging the hosts
-  this.pingHosts();
-}
-
-DeviceAccessory.prototype.populateStateCache = function() {
-  this.devices.forEach(function(deviceConfig) {
-    var target = this.getTarget(deviceConfig);
-    var isActive = this.targetIsActive(target);
-
-    this.stateCache[target] = isActive;
-  }.bind(this));
-}
-
-DeviceAccessory.prototype.updateStateCache = function(target, state) {
-  this.stateCache[target] = state;
-}
-
-DeviceAccessory.prototype.getStateFromCache = function(target) {
-  return this.stateCache[target];
-}
-
-DeviceAccessory.prototype.getServices = function() {
-  return this.services;
-}
-
-DeviceAccessory.prototype.getServiceForTarget = function(target) {
-  var service = this.services.find(function(target, service) {
-    return (service.target == target);
-  }.bind(this, target));
-
-  return service;
-}
+  var pinger = new Pinger(config.ip, pingInterval, function(state) {
+    this.setOnline(state);
+  }.bind(this), log).start();
 
 
-DeviceAccessory.prototype.getState = function(target, callback) {
-  callback(null, this.getStateFromCache(target));
-}
-
-DeviceAccessory.prototype.pingHosts = function() {
-  this.devices.forEach(function(deviceConfig) {
-
-    var target = this.getTarget(deviceConfig);
-    ping.sys.probe(target, function(state){
-      //If target is alive update the last seen time
-      if (state) {
-        this.storage.setItem('device_' + target, Date.now());
-      }
-
-      var oldState = this.getStateFromCache(target);
-      var newState = this.targetIsActive(target);
-      if (oldState != newState) {
-        //Update our internal cache of states
-        this.updateStateCache(target, newState);
-
-        //Trigger an update to the Homekit service associated with the target
-        var service = this.getServiceForTarget(target);
-        service.getCharacteristic(Characteristic.On).setValue(newState);
-      }
+  service.getCharacteristic(Characteristic.On)
+    .on('get', function(callback) {
+      var online = this.getOnline();
+      log('Call get for %s, return %s', config.ip, online);
+      callback(null, online);
     }.bind(this));
-  }.bind(this));
-
-  setTimeout(DeviceAccessory.prototype.pingHosts.bind(this), this.interval * 1000);
-}
 
 
-/**
- * Handle old config entries that use a key of 'ip' instead of 'target'
- */
-DeviceAccessory.prototype.getTarget = function(deviceConfig) {
-  if (deviceConfig.ip) {
-    return deviceConfig.ip;
-  }
+  this.getServices = function() {
+    return [service];
+  };
 
-  return deviceConfig.target;
-}
-
-
-DeviceAccessory.prototype.targetIsActive = function(target) {
-  var lastSeenUnix = this.storage.getItem('device_' + target);
-
-  if (lastSeenUnix) {
-    var lastSeenMoment = moment(lastSeenUnix);
-    var activeThreshold = moment().subtract(this.threshold, 'm');
-    //var activeThreshold = moment().subtract(2, 's');
-
-    var isActive = lastSeenMoment.isAfter(activeThreshold);
-
-    if (isActive) {
-      return true;
+  this.setOnline = function(newState) {
+    var online = this.getOnline();
+    if (newState !== online) {
+      log('Updating state for %s %s -> %s', config.ip, online, newState);
+      isOnline = newState;
+      service.getCharacteristic(Characteristic.On).getValue();
     }
+  };
+
+  this.getOnline = function() {
+    return isOnline;
+  };
+
+  return this;
+}
+
+
+function Pinger(ip, interval, callback, log) {
+  var running = false,
+    pingSession = ping.createSession(),
+    pingTimer;
+
+  var log = log || function() {};
+
+
+  function run() {
+    if (running)
+      return;
+
+    running = true;
+    pingSession.pingHost(ip, function(error) {
+      callback(!error);
+      running = false;
+    });
   }
 
-  return false;
+
+  return {
+    start: function() {
+      this.stop();
+      log('Starting timer on %dms interval for %s.', interval, ip);
+      pingTimer = setInterval(run, interval);
+      return this;
+    },
+
+    stop: function() {
+      if (pingTimer) {
+        log('Stopping the current timer for %s.', ip);
+        pingTimer = clearInterval(pingTimer);
+      }
+
+      return this;
+    }
+  };
 }
