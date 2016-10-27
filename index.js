@@ -10,12 +10,12 @@ module.exports = function(homebridge) {
 };
 
 function Device(log, config) {
+  this.isOnline = false;
+  this.pingInterval = 1000 * (config.pingInterval || 5);
   var service = new Service.Switch(config.name),
-    pingInterval = 1000 * (config.pingInterval || 5),
-    isOnline = false,
     self = this;
 
-  var pinger = new Pinger(config.ip, pingInterval, function(state) {
+  var pinger = new Pinger(config.ip, this.pingInterval, function(state) {
     this.setOnline(state);
   }.bind(this), log).start();
 
@@ -36,13 +36,13 @@ function Device(log, config) {
     var online = this.getOnline();
     if (newState !== online) {
       log('Updating state for %s %s -> %s', config.ip, online, newState);
-      isOnline = newState;
+      this.isOnline = newState;
       service.getCharacteristic(Characteristic.On).getValue();
     }
   };
 
   this.getOnline = function() {
-    return isOnline;
+    return this.isOnline;
   };
 
   return this;
