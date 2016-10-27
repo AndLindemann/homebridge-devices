@@ -63,8 +63,8 @@ function Pinger(ip, interval, callback, log) {
 
     running = true;
     pingSession.pingHost(ip, function(error) {
-      callback(!error);
       running = false;
+      callback(!error);
     });
   }
 
