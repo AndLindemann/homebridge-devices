@@ -59,12 +59,10 @@ function Pinger(ip, interval, callback, log) {
 
   function run() {
     if (running) {
-  log('Skip Pinging %s', ip);
       return;
     }
 
 
-  log('Pinging %s', ip);
     running = true;
     pingSession.pingHost(ip, function(error) {
       running = false;
