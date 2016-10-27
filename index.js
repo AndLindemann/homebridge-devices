@@ -28,13 +28,12 @@ function DeviceAccessory(log, config) {
     dir: HomebridgeAPI.user.persistPath()
   });
 
-  //Setup an OccupancySensor for each person defined in the config file
   config['devices'].forEach(function(deviceConfig) {
     var target = this.getTarget(deviceConfig);
-    var service = new Service.OccupancySensor(deviceConfig.name, deviceConfig.name);
+    var service = new Service.AccessoryInformation(deviceConfig.name, deviceConfig.name);
     service.target = target;
     service
-      .getCharacteristic(Characteristic.OccupancyDetected)
+      .getCharacteristic(Characteristic.On)
       .on('get', this.getState.bind(this, target));
 
     this.services.push(service);
@@ -98,7 +97,7 @@ DeviceAccessory.prototype.pingHosts = function() {
 
         //Trigger an update to the Homekit service associated with the target
         var service = this.getServiceForTarget(target);
-        service.getCharacteristic(Characteristic.OccupancyDetected).setValue(newState);
+        service.getCharacteristic(Characteristic.On).setValue(newState);
       }
     }.bind(this));
   }.bind(this));
