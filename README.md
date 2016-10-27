@@ -11,12 +11,16 @@ This is a plugin for homebridge. It monitors if configured network devices are o
 
 ```
 "accessories": [
-        {
-          "accessory" : "Device",
-          "name" : "AppleTV",
-          "ip" : "10.0.0.99",
-          "pingInterval": 15
-        }
+    {
+    "accessory" : "Devices",
+    "name" : "Devices",
+    "devices" : [
+      { "name" : "Schlafzimmer FireTV", "target" : "10.0.0.50" },
+      { "name" : "Playstation", "target" : "10.0.0.35" },
+      { "name" : "Wohnzimmer TV", "target" : "10.0.0.21" }
+    ],
+    "threshold" : 30
+  }
 ],
 ```
 
