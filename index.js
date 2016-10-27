@@ -10,7 +10,7 @@ module.exports = function(homebridge) {
 };
 
 function Device(log, config) {
-  var service = new Service.Lightbulb(config.name),
+  var service = new Service.Switch(config.name),
     pingInterval = 1000 * (config.pingInterval || 5),
     isOnline = false,
     self = this;
