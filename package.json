@@ -1,0 +1,21 @@
+{
+  "name": "homebridge-devices",
+  "version": "0.0.1",
+  "description": "Homebridge plugin that provides on/off status of network devices",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AndLindemann/homebridge-devices.git"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "moment": "^2.11.2",
+    "node-persist": "0.0.8",
+    "ping": "^0.1.10"
+  }
+}
