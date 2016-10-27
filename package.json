@@ -14,8 +14,6 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "moment": "^2.11.2",
-    "node-persist": "0.0.8",
-    "ping": "^0.1.10"
+     "net-ping": "^1.1.12"
   }
 }
