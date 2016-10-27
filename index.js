@@ -31,7 +31,7 @@ function DeviceAccessory(log, config) {
   //Setup an OccupancySensor for each person defined in the config file
   config['devices'].forEach(function(deviceConfig) {
     var target = this.getTarget(deviceConfig);
-    var service = new Service.OccupancySensor(device.name, deviceConfig.name);
+    var service = new Service.OccupancySensor(deviceConfig.name, deviceConfig.name);
     service.target = target;
     service
       .getCharacteristic(Characteristic.OccupancyDetected)
