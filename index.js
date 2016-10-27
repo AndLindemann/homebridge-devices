@@ -27,10 +27,9 @@ function DeviceAccessory(log, config) {
     dir: HomebridgeAPI.user.persistPath()
   });
 
-  //Setup an OccupancySensor for each person defined in the config file
   config['devices'].forEach(function(deviceConfig) {
     var target = this.getTarget(deviceConfig);
-    var service = new Service.Switch(deviceConfig.name);
+    var service = new Service.Switch(deviceConfig.name, deviceConfig.name);
     service.target = target;
     service
       .getCharacteristic(Characteristic.On)
