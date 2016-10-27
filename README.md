@@ -1,4 +1,4 @@
-# homebridge-device
+# homebridge-devices
 This is a plugin for homebridge. It monitors if configured network devices are online by pinging them in intervalls.
 
 # Installation
@@ -18,7 +18,8 @@ This is a plugin for homebridge. It monitors if configured network devices are o
       { "name" : "Fire-TV", "target" : "192.168.1.65" },
       { "name" : "Sony TV", "target" : "sonytv" }
     ],
-    "threshold" : 5
+    "threshold" : 5,
+    "interval" : 30
   }
 ],
 ```
@@ -26,7 +27,7 @@ This is a plugin for homebridge. It monitors if configured network devices are o
 ```target``` may be either a hostname or an IP address
 
 # How it works
-* When started homebridge-devices will ping the IP address associated with each device defined in config.json every 15 seconds.
+* When started homebridge-devices will ping the IP address associated with each device defined in config.json every ```interval``` seconds.
 * When a ping is successful the current timestamp is logged to a file (seen.db.json)
 * When a Homekit enabled app looks up the state of a device, the last seen time for that device is compared to the current time minus ```threshold``` minutes, and if it is greater assumes that the device is active.
 

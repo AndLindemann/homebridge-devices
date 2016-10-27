@@ -18,6 +18,7 @@ function DeviceAccessory(log, config) {
   this.name = config['name'];
   this.devices = config['devices'];
   this.threshold = config['threshold'];
+  this.interval = config['interval'];
   this.services = [];
   this.storage = require('node-persist');
   this.stateCache = [];
@@ -102,7 +103,7 @@ DeviceAccessory.prototype.pingHosts = function() {
     }.bind(this));
   }.bind(this));
 
-  setTimeout(DeviceAccessory.prototype.pingHosts.bind(this), 30000);
+  setTimeout(DeviceAccessory.prototype.pingHosts.bind(this), this.intervall * 1000);
 }
 
 
