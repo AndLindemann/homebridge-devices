@@ -103,7 +103,7 @@ DeviceAccessory.prototype.pingHosts = function() {
     }.bind(this));
   }.bind(this));
 
-  setTimeout(DeviceAccessory.prototype.pingHosts.bind(this), this.intervall * 1000);
+  setTimeout(DeviceAccessory.prototype.pingHosts.bind(this), this.interval * 1000);
 }
 
 
